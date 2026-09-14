@@ -9,7 +9,7 @@ source "${WORKFLOW_DIR}/000.config.sh"
 ARRAY_ID="${SLURM_ARRAY_TASK_ID:-}"
 
 if [[ -z "${ARRAY_ID}" ]]; then
-    echo "ERROR: No SLURM array task ID detected."
+    echo "ERROR: Missing SLURM_ARRAY_TASK_ID."
     exit 1
 fi
 
@@ -23,17 +23,9 @@ if [[ "${END_TASK}" -gt "${TOTAL_TASKS}" ]]; then
 fi
 
 if [[ "${START_TASK}" -gt "${TOTAL_TASKS}" ]]; then
-    echo "ERROR: No VOL tasks assigned to array element ${ARRAY_ID}."
+    echo "ERROR: No tasks assigned to array element ${ARRAY_ID}."
     exit 1
 fi
-
-mkdir -p "${LOG_DIR}/chunks"
-
-CHUNK_OUT="${LOG_DIR}/chunks/VOL_chunk_${ARRAY_ID}.out"
-
-: > "${CHUNK_OUT}"
-
-exec > >(tee -a "${CHUNK_OUT}") 2>&1
 
 echo
 echo "SLURM job: ${SLURM_JOB_ID:-unknown}"
@@ -43,7 +35,7 @@ echo "Task range: ${START_TASK}-${END_TASK}"
 echo
 
 PIDS=()
-ACTIVE_TASKS=()
+TASK_IDS=()
 
 for ((TASK_ID=START_TASK; TASK_ID<=END_TASK; TASK_ID++)); do
 
@@ -52,34 +44,24 @@ for ((TASK_ID=START_TASK; TASK_ID<=END_TASK; TASK_ID++)); do
     bash "${WORKFLOW_DIR}/003.run_one_task.slurm" "${TASK_ID}" &
 
     PIDS+=("$!")
-    ACTIVE_TASKS+=("${TASK_ID}")
-
+    TASK_IDS+=("${TASK_ID}")
 done
-
-echo
-echo "Launched ${#PIDS[@]} Volume Overlap calculations."
-echo
 
 FAILURES=0
 
 for I in "${!PIDS[@]}"; do
 
-    PID="${PIDS[$I]}"
-    TASK_ID="${ACTIVE_TASKS[$I]}"
-
-    if wait "${PID}"; then
-        echo "Task ${TASK_ID} completed successfully."
+    if wait "${PIDS[$I]}"; then
+        echo "Task ${TASK_IDS[$I]} complete."
     else
-        echo "Task ${TASK_ID} failed."
+        echo "Task ${TASK_IDS[$I]} failed."
         FAILURES=$((FAILURES + 1))
     fi
-
 done
 
 echo
-echo "Array element: ${ARRAY_ID}"
-echo "Calculations launched: ${#PIDS[@]}"
-echo "Failed calculations: ${FAILURES}"
+echo "Tasks launched: ${#PIDS[@]}"
+echo "Failures: ${FAILURES}"
 
 if [[ "${FAILURES}" -gt 0 ]]; then
     exit 1

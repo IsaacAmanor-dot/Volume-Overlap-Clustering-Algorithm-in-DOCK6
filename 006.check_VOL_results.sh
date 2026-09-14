@@ -5,50 +5,46 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/000.config.sh"
 
-if [[ ! -s "${TASK_LIST}" ]]; then
-    echo "ERROR: Missing task list:"
-    echo "${TASK_LIST}"
-    exit 1
-fi
-
 printf "task_id\tcutoff\tcase_name\tstatus\ttotal_islands\toutput_file\n" \
     > "${STATUS_FILE}"
 
-while IFS=$'\t' read -r TASK_ID CUTOFF LABEL CASE_NAME CASE_DIR INPUT_FILE; do
+while IFS=$'\t' read -r TASK_ID CUTOFF LABEL CASE_NAME INPUT_FILE; do
 
-    OUTPUT_FILE="${CASE_DIR}/${CASE_NAME}.out"
-    SUMMARY_FILE="${CASE_DIR}/VOL_Island_summary_${LABEL}.out"
+    OUTPUT_FILE="${WORK_ROOT}/${CASE_NAME}.out"
+    SUMMARY_FILE="${WORK_ROOT}/${CASE_NAME}_summary.out"
+
+    SUCCESS_FILE="${WORK_ROOT}/.${CASE_NAME}.success"
+    FAILED_FILE="${WORK_ROOT}/.${CASE_NAME}.failed"
 
     TOTAL_ISLANDS=""
 
     if [[ -s "${OUTPUT_FILE}" ]]; then
         TOTAL_ISLANDS=$(awk '
-            /^Total Islands:/ {
-                print $3
-                exit
-            }
+        /^Total Islands:/ {
+            print $3
+            exit
+        }
         ' "${OUTPUT_FILE}")
     fi
 
-    if [[ -f "${CASE_DIR}/.success" ]] \
+    if [[ -f "${SUCCESS_FILE}" ]] \
+        && [[ -s "${OUTPUT_FILE}" ]] \
         && [[ -s "${SUMMARY_FILE}" ]] \
         && grep -q "Similarity Island clustering complete" "${OUTPUT_FILE}" 2>/dev/null; then
 
         STATUS="SUCCESS"
 
-    elif [[ -f "${CASE_DIR}/.failed" ]]; then
+    elif [[ -f "${FAILED_FILE}" ]]; then
 
         STATUS="FAILED"
 
-    elif [[ -s "${OUTPUT_FILE}" ]] \
-        || [[ -s "${SUMMARY_FILE}" ]]; then
+    elif [[ -s "${OUTPUT_FILE}" || -s "${SUMMARY_FILE}" ]]; then
 
         STATUS="INCOMPLETE"
 
     else
 
         STATUS="MISSING"
-
     fi
 
     printf "%s\t%s\t%s\t%s\t%s\t%s\n" \
@@ -71,11 +67,14 @@ MISSING=$(awk -F '\t' '$4=="MISSING" {n++} END {print n+0}' "${STATUS_FILE}")
 echo
 echo "Volume Overlap Similarity Island status"
 echo
-echo "Total calculations:    ${TOTAL}"
-echo "Successful:            ${SUCCESS}"
-echo "Failed:                ${FAILED}"
-echo "Incomplete/running:    ${INCOMPLETE}"
-echo "Missing/not started:   ${MISSING}"
+echo "Total:      ${TOTAL}"
+echo "Successful: ${SUCCESS}"
+echo "Failed:     ${FAILED}"
+echo "Incomplete: ${INCOMPLETE}"
+echo "Missing:    ${MISSING}"
 echo
 echo "Status table:"
 echo "${STATUS_FILE}"
+echo
+
+column -t -s $'\t' "${STATUS_FILE}"

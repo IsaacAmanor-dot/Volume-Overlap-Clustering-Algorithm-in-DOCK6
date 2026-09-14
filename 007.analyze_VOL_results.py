@@ -15,18 +15,19 @@ except ImportError:
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-RUN_DIR = SCRIPT_DIR / "runs" / "VOL"
-ANALYSIS_DIR = SCRIPT_DIR / "analysis"
 
-SUMMARY_CSV = ANALYSIS_DIR / "VOL_analysis_summary.csv"
-ISLAND_CSV = ANALYSIS_DIR / "VOL_island_statistics.csv"
-MEMBER_CSV = ANALYSIS_DIR / "VOL_member_statistics.csv"
+RUN_DIR = SCRIPT_DIR
+ANALYSIS_DIR = SCRIPT_DIR
 
-RUNTIME_PLOT = ANALYSIS_DIR / "VOL_runtime_vs_cutoff.png"
-ISLAND_COUNT_PLOT = ANALYSIS_DIR / "VOL_island_count_vs_cutoff.png"
-CLUSTER_SIZE_PLOT = ANALYSIS_DIR / "VOL_cluster_size_vs_cutoff.png"
-SIMILARITY_PLOT = ANALYSIS_DIR / "VOL_similarity_vs_cutoff.png"
-CALCULATIONS_PLOT = ANALYSIS_DIR / "VOL_calculations_vs_cutoff.png"
+SUMMARY_CSV = SCRIPT_DIR / "VOL_analysis_summary.csv"
+ISLAND_CSV = SCRIPT_DIR / "VOL_island_statistics.csv"
+MEMBER_CSV = SCRIPT_DIR / "VOL_member_statistics.csv"
+
+RUNTIME_PLOT = SCRIPT_DIR / "VOL_runtime_vs_cutoff.png"
+ISLAND_COUNT_PLOT = SCRIPT_DIR / "VOL_island_count_vs_cutoff.png"
+CLUSTER_SIZE_PLOT = SCRIPT_DIR / "VOL_cluster_size_vs_cutoff.png"
+SIMILARITY_PLOT = SCRIPT_DIR / "VOL_similarity_vs_cutoff.png"
+CALCULATIONS_PLOT = SCRIPT_DIR / "VOL_calculations_vs_cutoff.png"
 
 
 def mean_value(values):
@@ -57,25 +58,19 @@ def max_value(values):
 
 def discover_outputs():
 
-    if not RUN_DIR.exists():
-        print("ERROR: VOL run directory does not exist:")
-        print(RUN_DIR)
-        sys.exit(1)
-
     files = []
 
-    for case_dir in RUN_DIR.iterdir():
+    for path in sorted(SCRIPT_DIR.glob("VOL_Island_*.out")):
 
-        if not case_dir.is_dir():
+        if "summary" in path.name.lower():
             continue
 
-        expected = case_dir / f"{case_dir.name}.out"
+        if path.name.startswith("VOL_slurm_"):
+            continue
 
-        if expected.is_file():
-            files.append(expected)
+        files.append(path)
 
-    return sorted(files)
-
+    return files
 
 def parse_output(path):
 
