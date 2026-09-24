@@ -3,41 +3,30 @@
 set -uo pipefail
 
 WORKFLOW_DIR="${WORKFLOW_DIR:-${SLURM_SUBMIT_DIR:-$(pwd)}}"
-
 source "${WORKFLOW_DIR}/000.config.sh"
-
-ARRAY_ID="${SLURM_ARRAY_TASK_ID:-}"
-
-if [[ -z "${ARRAY_ID}" ]]; then
-    echo "ERROR: Missing SLURM_ARRAY_TASK_ID."
-    exit 1
-fi
 
 TOTAL_TASKS=$(awk 'END {print NR - 1}' "${TASK_LIST}")
 
-START_TASK=$(( (ARRAY_ID - 1) * TASKS_PER_NODE + 1 ))
-END_TASK=$(( ARRAY_ID * TASKS_PER_NODE ))
-
-if [[ "${END_TASK}" -gt "${TOTAL_TASKS}" ]]; then
-    END_TASK="${TOTAL_TASKS}"
-fi
-
-if [[ "${START_TASK}" -gt "${TOTAL_TASKS}" ]]; then
-    echo "ERROR: No tasks assigned to array element ${ARRAY_ID}."
+if [[ "${TOTAL_TASKS}" -lt 1 ]]; then
+    echo "ERROR: No VOL tasks found."
     exit 1
 fi
 
 echo
 echo "SLURM job: ${SLURM_JOB_ID:-unknown}"
-echo "Array element: ${ARRAY_ID}"
 echo "Node: $(hostname)"
-echo "Task range: ${START_TASK}-${END_TASK}"
+echo "VOL calculations: ${TOTAL_TASKS}"
+echo "Maximum concurrent calculations: ${MAX_CONCURRENT_TASKS}"
 echo
 
 PIDS=()
 TASK_IDS=()
+FAILURES=0
 
-for ((TASK_ID=START_TASK; TASK_ID<=END_TASK; TASK_ID++)); do
+for ((TASK_ID=1; TASK_ID<=TOTAL_TASKS; TASK_ID++)); do
+    while [[ "$(jobs -rp | wc -l)" -ge "${MAX_CONCURRENT_TASKS}" ]]; do
+        sleep 2
+    done
 
     echo "Launching VOL task ${TASK_ID}"
 
@@ -47,10 +36,7 @@ for ((TASK_ID=START_TASK; TASK_ID<=END_TASK; TASK_ID++)); do
     TASK_IDS+=("${TASK_ID}")
 done
 
-FAILURES=0
-
 for I in "${!PIDS[@]}"; do
-
     if wait "${PIDS[$I]}"; then
         echo "Task ${TASK_IDS[$I]} complete."
     else

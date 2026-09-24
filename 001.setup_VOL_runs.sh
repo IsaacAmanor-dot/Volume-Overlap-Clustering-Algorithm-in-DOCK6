@@ -44,12 +44,9 @@ fi
 GENERATED=0
 
 for CUTOFF in "${VOL_CUTOFFS[@]}"; do
-
     LABEL=$(cutoff_label "${CUTOFF}")
     CASE_NAME="VOL_Island_${LABEL}"
-
     INPUT_FILE="${WORK_ROOT}/${CASE_NAME}.in"
-    SUMMARY_FILE="${CASE_NAME}_summary.out"
 
     cat > "${INPUT_FILE}" << EOF_INPUT
 conformer_search_type                                      analysis
@@ -62,8 +59,7 @@ cluster_by_similarity_island                               yes
 similarity_island_scoring_type                             volume_overlap
 similarity_island_volume_overlap_cutoff                    ${CUTOFF}
 similarity_island_retention_mode                           all
-similarity_island_write_summary                            yes
-similarity_island_summary_file                             ${SUMMARY_FILE}
+similarity_island_write_summary                            no
 score_molecules                                            yes
 contact_score_primary                                      no
 grid_score_primary                                         no
@@ -96,7 +92,6 @@ ligand_outfile_prefix                                      ${CASE_NAME}
 EOF_INPUT
 
     echo "Created ${CASE_NAME}.in"
-
     GENERATED=$((GENERATED + 1))
 done
 

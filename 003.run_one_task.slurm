@@ -32,18 +32,15 @@ fi
 IFS=$'\t' read -r TASK_ID CUTOFF LABEL CASE_NAME INPUT_FILE <<< "${TASK_LINE}"
 
 OUTPUT_FILE="${WORK_ROOT}/${CASE_NAME}.out"
-SUMMARY_FILE="${WORK_ROOT}/${CASE_NAME}_summary.out"
-
 SUCCESS_FILE="${WORK_ROOT}/.${CASE_NAME}.success"
 FAILED_FILE="${WORK_ROOT}/.${CASE_NAME}.failed"
 
 cd "${WORK_ROOT}" || exit 1
 
-if [[ -f "${SUCCESS_FILE}" ]] \
-    && [[ -s "${OUTPUT_FILE}" ]] \
-    && [[ -s "${SUMMARY_FILE}" ]] \
+if [[ -s "${OUTPUT_FILE}" ]] \
     && grep -q "Similarity Island clustering complete" "${OUTPUT_FILE}"; then
-
+    touch "${SUCCESS_FILE}"
+    rm -f "${FAILED_FILE}"
     echo "${CASE_NAME} already completed."
     exit 0
 fi
@@ -69,15 +66,11 @@ EXIT_CODE=$?
 
 if [[ "${EXIT_CODE}" -eq 0 ]] \
     && [[ -s "${OUTPUT_FILE}" ]] \
-    && [[ -s "${SUMMARY_FILE}" ]] \
     && grep -q "Similarity Island clustering complete" "${OUTPUT_FILE}"; then
-
     touch "${SUCCESS_FILE}"
     rm -f "${FAILED_FILE}"
-
     echo
     echo "${CASE_NAME} completed successfully."
-
     exit 0
 fi
 

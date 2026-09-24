@@ -9,10 +9,7 @@ printf "task_id\tcutoff\tcase_name\tstatus\ttotal_islands\toutput_file\n" \
     > "${STATUS_FILE}"
 
 while IFS=$'\t' read -r TASK_ID CUTOFF LABEL CASE_NAME INPUT_FILE; do
-
     OUTPUT_FILE="${WORK_ROOT}/${CASE_NAME}.out"
-    SUMMARY_FILE="${WORK_ROOT}/${CASE_NAME}_summary.out"
-
     SUCCESS_FILE="${WORK_ROOT}/.${CASE_NAME}.success"
     FAILED_FILE="${WORK_ROOT}/.${CASE_NAME}.failed"
 
@@ -27,23 +24,16 @@ while IFS=$'\t' read -r TASK_ID CUTOFF LABEL CASE_NAME INPUT_FILE; do
         ' "${OUTPUT_FILE}")
     fi
 
-    if [[ -f "${SUCCESS_FILE}" ]] \
-        && [[ -s "${OUTPUT_FILE}" ]] \
-        && [[ -s "${SUMMARY_FILE}" ]] \
+    if [[ -s "${OUTPUT_FILE}" ]] \
         && grep -q "Similarity Island clustering complete" "${OUTPUT_FILE}" 2>/dev/null; then
-
         STATUS="SUCCESS"
-
+        touch "${SUCCESS_FILE}"
+        rm -f "${FAILED_FILE}"
     elif [[ -f "${FAILED_FILE}" ]]; then
-
         STATUS="FAILED"
-
-    elif [[ -s "${OUTPUT_FILE}" || -s "${SUMMARY_FILE}" ]]; then
-
+    elif [[ -s "${OUTPUT_FILE}" ]]; then
         STATUS="INCOMPLETE"
-
     else
-
         STATUS="MISSING"
     fi
 

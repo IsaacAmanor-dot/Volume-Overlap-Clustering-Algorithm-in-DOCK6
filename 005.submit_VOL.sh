@@ -5,8 +5,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/000.config.sh"
 
-MAX_CONCURRENT_NODES="${1:-${MAX_NODES}}"
-
 if [[ ! -s "${TASK_LIST}" ]]; then
     echo "ERROR: Missing task list."
     echo "Run bash 002.make_task_list.sh first."
@@ -20,16 +18,17 @@ if [[ "${N_TASKS}" -lt 1 ]]; then
     exit 1
 fi
 
-N_CHUNKS=$(( (N_TASKS + TASKS_PER_NODE - 1) / TASKS_PER_NODE ))
+CPUS="${MAX_CONCURRENT_TASKS}"
 
-ARRAY_SPEC="1-${N_CHUNKS}%${MAX_CONCURRENT_NODES}"
+if [[ "${CPUS}" -gt "${N_TASKS}" ]]; then
+    CPUS="${N_TASKS}"
+fi
 
 echo
 echo "VOL calculations: ${N_TASKS}"
-echo "Tasks per node: ${TASKS_PER_NODE}"
-echo "Node chunks: ${N_CHUNKS}"
-echo "Maximum concurrent nodes: ${MAX_CONCURRENT_NODES}"
-echo "SLURM array: ${ARRAY_SPEC}"
+echo "Node count: 1"
+echo "Concurrent calculations: ${CPUS}"
+echo "Partition: ${SLURM_PARTITION}"
 echo
 
 sbatch \
@@ -37,9 +36,8 @@ sbatch \
     --time="${SLURM_TIME}" \
     --nodes=1 \
     --ntasks=1 \
-    --cpus-per-task="${TASKS_PER_NODE}" \
+    --cpus-per-task="${CPUS}" \
     --job-name="VOL_Island" \
-    --array="${ARRAY_SPEC}" \
-    --output="${WORK_ROOT}/VOL_slurm_%A_%a.out" \
+    --output="${WORK_ROOT}/VOL_slurm_%j.out" \
     --export="ALL,WORKFLOW_DIR=${WORK_ROOT}" \
     "${WORK_ROOT}/004.run_VOL_chunks.slurm"

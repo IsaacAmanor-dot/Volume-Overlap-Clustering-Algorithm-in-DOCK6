@@ -17,9 +17,10 @@ VOL_CUTOFFS=(
 )
 
 DOCK_ROOT="/gpfs/projects/rizzo/iamanor/DOCK6_Development/Similarity_Island/dock6_dev"
-DOCK_BIN="${DOCK_ROOT}/bin/dock6"
 
+DOCK_BIN="${DOCK_ROOT}/bin/dock6"
 DOCK_PARAMS="${DOCK_ROOT}/parameters"
+
 VDW_DEFN_FILE="${DOCK_PARAMS}/vdw_AMBER_parm99.defn"
 FLEX_DEFN_FILE="${DOCK_PARAMS}/flex.defn"
 
@@ -32,8 +33,8 @@ STATUS_FILE="${WORK_ROOT}/VOL_status.tsv"
 
 SLURM_PARTITION="rn-long-40core"
 SLURM_TIME="2-00:00:00"
-TASKS_PER_NODE=40
-MAX_NODES=4
+
+MAX_CONCURRENT_TASKS=11
 
 cutoff_label()
 {
@@ -56,6 +57,12 @@ if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     echo
     echo "Grid prefix:"
     echo "${GRID_PREFIX}"
+    echo
+    echo "SLURM partition:"
+    echo "${SLURM_PARTITION}"
+    echo
+    echo "Maximum concurrent calculations:"
+    echo "${MAX_CONCURRENT_TASKS}"
     echo
     echo "Volume Overlap cutoffs:"
 
