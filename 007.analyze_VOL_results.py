@@ -631,9 +631,6 @@ def plot_island_count(runs):
 
     ax.set_xlabel("Volume Overlap cutoff")
     ax.set_ylabel("Number of islands")
-    ax.set_title(
-        "Volume Overlap Similarity Islands vs Cutoff"
-    )
 
     ax.grid(alpha=0.3)
 
@@ -663,9 +660,6 @@ def plot_island_sizes(runs):
 
     ax.set_xlabel("Volume Overlap cutoff")
     ax.set_ylabel("Molecules per island")
-    ax.set_title(
-        "Volume Overlap Island Size vs Cutoff"
-    )
 
     ax.set_yscale("log")
     ax.grid(alpha=0.3)
@@ -690,9 +684,6 @@ def plot_singleton_fraction(runs):
 
     ax.set_xlabel("Volume Overlap cutoff")
     ax.set_ylabel("Singleton islands (%)")
-    ax.set_title(
-        "Singleton Fraction vs Volume Overlap Cutoff"
-    )
 
     ax.set_ylim(0, 105)
     ax.grid(alpha=0.3)
@@ -735,9 +726,6 @@ def plot_size_distribution(runs):
 
     ax.set_xlabel("Volume Overlap cutoff")
     ax.set_ylabel("Molecules per island")
-    ax.set_title(
-        "Volume Overlap Island-Size Distribution"
-    )
 
     ax.set_yscale("log")
     ax.grid(alpha=0.3)
@@ -807,9 +795,6 @@ def plot_similarity(runs):
 
     ax.set_xlabel("Volume Overlap cutoff")
     ax.set_ylabel("Head-member Volume Overlap")
-    ax.set_title(
-        "Head-to-Member Volume Overlap vs Cutoff"
-    )
 
     ax.set_ylim(0, 1.05)
     ax.grid(alpha=0.3)
@@ -863,9 +848,6 @@ def plot_calculations(runs):
 
     ax.set_xlabel("Volume Overlap cutoff")
     ax.set_ylabel("Similarity calculations")
-    ax.set_title(
-        "Volume Overlap Similarity Calculations vs Cutoff"
-    )
 
     ax.grid(alpha=0.3)
     ax.legend()
@@ -897,10 +879,6 @@ def plot_calculation_reduction(runs):
         "Reduction relative to N(N-1)/2 (%)"
     )
 
-    ax.set_title(
-        "Similarity-Calculation Reduction vs Cutoff"
-    )
-
     ax.grid(alpha=0.3)
 
     fig.tight_layout()
@@ -929,9 +907,6 @@ def plot_runtime(runs):
 
     ax.set_xlabel("Volume Overlap cutoff")
     ax.set_ylabel("Elapsed time (seconds)")
-    ax.set_title(
-        "Volume Overlap Runtime vs Cutoff"
-    )
 
     ax.grid(alpha=0.3)
 
